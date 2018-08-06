@@ -90,6 +90,7 @@ func (sl *scriptyListener) ExitVar_or_literal(ctx *parsergen.Var_or_literalConte
 	gen, ok := sl.expressions[key]
 	if !ok {
 		logrus.Errorf("Can't find variable: %s", key.GetText())
+		return
 	}
 	sl.expressions[ctx] = &ast.VarOrLiteral{
 		Child: gen,
@@ -100,11 +101,13 @@ func (sl *scriptyListener) ExitMath_expression(ctx *parsergen.Math_expressionCon
 	lhs, okl := sl.expressions[ctx.Var_or_literal(0)]
 	if !okl {
 		logrus.Errorf("Can't find var or literal: %s", ctx.Var_or_literal(0).GetText())
+		return
 	}
 
 	rhs, okr := sl.expressions[ctx.Var_or_literal(1)]
 	if !okr {
 		logrus.Errorf("Can't find var or literal: %s", ctx.Var_or_literal(1).GetText())
+		return
 	}
 
 	operand := ctx.ARITHMETIC_OP(0).GetText()
@@ -121,9 +124,16 @@ func (sl *scriptyListener) ExitExpr(ctx *parsergen.ExprContext) {
 		key = ctx.Math_expression()
 	} // TODO -- add other possibilities here
 
+	if key == nil {
+		logrus.Errorf("Can't find a good key")
+		return
+	}
+
+	logrus.Infof("found math expression %s", key.GetText())
 	gen, ok := sl.expressions[key]
 	if !ok {
-		logrus.Errorf("Can't find expr: %s", key.GetText())
+		logrus.Errorf("Can't find expr: %s", key.String(nil, nil))
+		return
 	}
 	sl.expressions[ctx] = &ast.Expr{
 		Child: gen,
@@ -136,9 +146,17 @@ func (sl *scriptyListener) ExitExpression(ctx *parsergen.ExpressionContext) {
 		key = ctx.Expr()
 	} // TODO -- add other possibilities here
 
+	if key == nil {
+		logrus.Errorf("Can't find a good key")
+		return
+	}
+
+	logrus.Infof("found expr %s", key.GetText())
+
 	gen, ok := sl.expressions[key]
 	if !ok {
 		logrus.Errorf("Can't find expr: %s", key.GetText())
+		return
 	}
 	sl.expressions[ctx] = &ast.Expression{
 		Child: gen,
@@ -147,11 +165,13 @@ func (sl *scriptyListener) ExitExpression(ctx *parsergen.ExpressionContext) {
 
 func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {
 	numExpressions := len(ctx.AllExpression())
+	logrus.Infof("found %d top-level expressions", numExpressions)
 	tle := make([]*ast.Expression, numExpressions)
 	for i := 0; i < numExpressions; i++ {
 		e, ok := sl.expressions[ctx.Expression(i)]
 		if !ok {
 			logrus.Errorf("Can't find expression: %s", ctx.Expression(i).GetText())
+			return
 		}
 		tle[i] = e.(*ast.Expression)
 	}
