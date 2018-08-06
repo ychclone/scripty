@@ -34,7 +34,7 @@ type scriptyListener struct {
 	*parsergen.BasescriptyListener
 
 	functions   map[string]*ast.Function
-	expressions map[*parsergen.LiteralContext]*ast.AbstractExpression
+	expressions map[*parsergen.LiteralContext]ast.CodeGenerator
 }
 
 func (sl *scriptyListener) EnterProgram(ctx *parsergen.ProgramContext) {}
@@ -65,13 +65,13 @@ func (sl *scriptyListener) EnterLiteral(ctx *parsergen.LiteralContext) {
 		if err != nil {
 			logrus.Errorf("Can't convert string to number: %s", err.Error())
 		}
-		nle := &NumberLiteralExpression{
+		nle := &ast.NumberLiteralExpression{
 			Num: f,
 		}
 		sl.expressions[ctx] = nle
 	} else if ctx.STRING() != nil {
 		str := ctx.STRING().GetText()
-		sle := &StringLiteralExpression{
+		sle := &ast.StringLiteralExpression{
 			Str: str,
 		}
 		sl.expressions[ctx] = sle

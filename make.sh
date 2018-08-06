@@ -2,8 +2,7 @@
 
 # LLVM_ROOT="$(brew --prefix llvm)"
 # LLVM_ROOT="/usr/local/opt/llvm"
-# LLVM_ROOT="/Users/marco.helmich/github/llvm/dist"
-LLVM_ROOT="/Users/marco.helmich/github/llvm-6.0.1.src/dist"
+LLVM_ROOT="$HOME/github/llvm-6.0.1.src/dist"
 LLVM_CONFIG="${LLVM_ROOT}/bin/llvm-config"
 
 export CGO_CPPFLAGS="$("$LLVM_CONFIG" --cppflags)"
