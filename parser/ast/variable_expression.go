@@ -20,6 +20,6 @@ import "llvm.org/git/llvm.git/bindings/go/llvm"
 
 type VariableExpression struct{}
 
-func (ve *VariableExpression) GenCode() llvm.Value {
+func (ve *VariableExpression) GenCode(builder llvm.Builder) llvm.Value {
 	return llvm.Value{}
 }

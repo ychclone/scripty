@@ -33,6 +33,6 @@ func (fa *Function) SignatureHash() string {
 	return fa.Name + "_" + strconv.Itoa(len(fa.Params))
 }
 
-func (fa *Function) GenCode() llvm.Value {
+func (fa *Function) GenCode(llvmCtx llvm.Context, builder llvm.Builder, module llvm.Module) llvm.Value {
 	return llvm.Value{}
 }

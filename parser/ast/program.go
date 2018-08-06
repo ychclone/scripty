@@ -19,9 +19,27 @@ package ast
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
 type Program struct {
-	functions map[string]*Function
+	Functions           map[string]*Function
+	TopLevelExpressions []*Expression
 }
 
-func (pa *Program) GenCode() llvm.Value {
-	return llvm.Value{}
+func (p *Program) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
+	f := llvm.AddFunction(
+		module,
+		"top-level-function",
+		llvm.FunctionType(
+			ctx.DoubleType(),
+			[]llvm.Type{ctx.DoubleType(), ctx.DoubleType()},
+			false,
+		),
+	)
+
+	topLevelBB := ctx.AddBasicBlock(f, "top-level")
+	builder := ctx.NewBuilder()
+	defer builder.Dispose()
+	builder.SetInsertPointAtEnd(topLevelBB)
+	for _, e := range p.TopLevelExpressions {
+		e.GenCode(builder)
+	}
+	return f
 }

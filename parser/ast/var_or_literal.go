@@ -22,6 +22,6 @@ type VarOrLiteral struct {
 	Child CodeGenerator
 }
 
-func (vol *VarOrLiteral) GenCode() llvm.Value {
-	return vol.Child.GenCode()
+func (vol *VarOrLiteral) GenCode(builder llvm.Builder) llvm.Value {
+	return vol.Child.GenCode(builder)
 }

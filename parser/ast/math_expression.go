@@ -16,13 +16,34 @@
 
 package ast
 
-import "llvm.org/git/llvm.git/bindings/go/llvm"
+import (
+	"github.com/sirupsen/logrus"
+	"llvm.org/git/llvm.git/bindings/go/llvm"
+)
 
 type MathExpression struct {
-	varOrLiterals []VarOrLiteral
-	operands      []string
+	LeftHandSide  CodeGenerator
+	RightHandSide CodeGenerator
+	Operand       string
 }
 
-func (me *MathExpression) GenCode() llvm.Value {
+func (me *MathExpression) GenCode(builder llvm.Builder) llvm.Value {
+	lv := me.LeftHandSide.GenCode(builder)
+	rv := me.RightHandSide.GenCode(builder)
+
+	switch me.Operand {
+	case "+":
+		return builder.CreateFAdd(lv, rv, "add_tmp")
+	case "-":
+		return builder.CreateFSub(lv, rv, "sub_tmp")
+	case "*":
+		return builder.CreateFMul(lv, rv, "mul_tmp")
+	case "/":
+		return builder.CreateFDiv(lv, rv, "div_tmp")
+	default:
+		logrus.Errorf("Don't know operand: %s", me.Operand)
+	}
+
+	logrus.Panic("unreachable")
 	return llvm.Value{}
 }

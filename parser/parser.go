@@ -24,7 +24,7 @@ import (
 )
 
 var symbols map[string]llvm.Value
-var context llvm.Context
+var llvmCtx llvm.Context
 var builder llvm.Builder
 var module llvm.Module
 
@@ -36,9 +36,9 @@ func init() {
 	}
 
 	symbols = make(map[string]llvm.Value)
-	context = llvm.NewContext()
-	builder = context.NewBuilder()
-	module = llvm.NewModule("module")
+	llvmCtx = llvm.NewContext()
+	builder = llvmCtx.NewBuilder()
+	module = llvmCtx.NewModule("module")
 }
 
 func Parse(input string) {
@@ -50,7 +50,6 @@ func Parse(input string) {
 
 	listener := newScriptyListener()
 	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
-	logrus.Infof("IR:\n%s", module.String())
-	logrus.Info("==========================")
-	module.Dump()
+	listener.theProgram.GenCode(llvmCtx, module)
+	logrus.Infof("generated IR:\n%s", module.String())
 }

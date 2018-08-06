@@ -18,6 +18,10 @@ package ast
 
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-type CodeGenerator interface {
-	GenCode(llvm.Builder) llvm.Value
+type Expr struct {
+	Child CodeGenerator
+}
+
+func (e *Expr) GenCode(builder llvm.Builder) llvm.Value {
+	return e.Child.GenCode(builder)
 }

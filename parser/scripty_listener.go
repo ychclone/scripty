@@ -35,6 +35,7 @@ func newScriptyListener() *scriptyListener {
 type scriptyListener struct {
 	*parsergen.BasescriptyListener
 
+	theProgram  *ast.Program
 	functions   map[string]*ast.Function
 	expressions map[antlr.ParserRuleContext]ast.CodeGenerator
 }
@@ -43,18 +44,16 @@ type scriptyListener struct {
 /////////////////////////////////////////
 //              ENTER PASS
 
-func (sl *scriptyListener) EnterProgram(ctx *parsergen.ProgramContext) {}
-
 func (sl *scriptyListener) EnterFunction_def(ctx *parsergen.Function_defContext) {
 	fnCtx := ctx.Function_name().(*parsergen.Function_nameContext)
 	funcName := fnCtx.NAME().GetText()
 	paramsCtx := ctx.Parameter_defs().(*parsergen.Parameter_defsContext)
 	params := paramsCtx.AllNAME()
+
 	funcAst := &ast.Function{
 		Name:   funcName,
 		Params: params,
 	}
-
 	sl.functions[funcAst.SignatureHash()] = funcAst
 }
 
@@ -65,16 +64,14 @@ func (sl *scriptyListener) EnterLiteral(ctx *parsergen.LiteralContext) {
 		if err != nil {
 			logrus.Errorf("Can't convert string to number: %s", err.Error())
 		}
-		nle := &ast.NumberLiteralExpression{
+		sl.expressions[ctx] = &ast.NumberLiteralExpression{
 			Num: f,
 		}
-		sl.expressions[ctx] = nle
 	} else if ctx.STRING() != nil {
 		str := ctx.STRING().GetText()
-		sle := &ast.StringLiteralExpression{
+		sl.expressions[ctx] = &ast.StringLiteralExpression{
 			Str: str,
 		}
-		sl.expressions[ctx] = sle
 	}
 }
 
@@ -96,5 +93,73 @@ func (sl *scriptyListener) ExitVar_or_literal(ctx *parsergen.Var_or_literalConte
 	}
 	sl.expressions[ctx] = &ast.VarOrLiteral{
 		Child: gen,
+	}
+}
+
+func (sl *scriptyListener) ExitMath_expression(ctx *parsergen.Math_expressionContext) {
+	lhs, okl := sl.expressions[ctx.Var_or_literal(0)]
+	if !okl {
+		logrus.Errorf("Can't find var or literal: %s", ctx.Var_or_literal(0).GetText())
+	}
+
+	rhs, okr := sl.expressions[ctx.Var_or_literal(1)]
+	if !okr {
+		logrus.Errorf("Can't find var or literal: %s", ctx.Var_or_literal(1).GetText())
+	}
+
+	operand := ctx.ARITHMETIC_OP(0).GetText()
+	sl.expressions[ctx] = &ast.MathExpression{
+		LeftHandSide:  lhs,
+		RightHandSide: rhs,
+		Operand:       operand,
+	}
+}
+
+func (sl *scriptyListener) ExitExpr(ctx *parsergen.ExprContext) {
+	var key antlr.ParserRuleContext
+	if ctx.Math_expression() != nil {
+		key = ctx.Math_expression()
+	} // TODO -- add other possibilities here
+
+	gen, ok := sl.expressions[key]
+	if !ok {
+		logrus.Errorf("Can't find expr: %s", key.GetText())
+	}
+	sl.expressions[ctx] = &ast.Expr{
+		Child: gen,
+	}
+}
+
+func (sl *scriptyListener) ExitExpression(ctx *parsergen.ExpressionContext) {
+	var key antlr.ParserRuleContext
+	if ctx.Expr() != nil {
+		key = ctx.Expr()
+	} // TODO -- add other possibilities here
+
+	gen, ok := sl.expressions[key]
+	if !ok {
+		logrus.Errorf("Can't find expr: %s", key.GetText())
+	}
+	sl.expressions[ctx] = &ast.Expression{
+		Child: gen,
+	}
+}
+
+func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {
+	numExpressions := len(ctx.AllExpression())
+	tle := make([]*ast.Expression, numExpressions)
+	for i := 0; i < numExpressions; i++ {
+		e, ok := sl.expressions[ctx.Expression(i)]
+		if !ok {
+			logrus.Errorf("Can't find expression: %s", ctx.Expression(i).GetText())
+		}
+		tle[i] = e.(*ast.Expression)
+	}
+
+	fs := make(map[string]*ast.Function)
+
+	sl.theProgram = &ast.Program{
+		Functions:           fs,
+		TopLevelExpressions: tle,
 	}
 }
