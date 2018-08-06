@@ -26,7 +26,8 @@ import (
 
 func newScriptyListener() *scriptyListener {
 	return &scriptyListener{
-		functions: make(map[string]*ast.Function),
+		functions:   make(map[string]*ast.Function),
+		expressions: make(map[*parsergen.LiteralContext]ast.CodeGenerator),
 	}
 }
 
@@ -41,9 +42,7 @@ func (sl *scriptyListener) EnterProgram(ctx *parsergen.ProgramContext) {}
 
 func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {}
 
-func (sl *scriptyListener) EnterExpression(ctx *parsergen.ExpressionContext) {
-	logrus.Info("EnterExpression: " + ctx.ToStringTree(nil, nil))
-}
+func (sl *scriptyListener) EnterExpression(ctx *parsergen.ExpressionContext) {}
 
 func (sl *scriptyListener) EnterFunction_def(ctx *parsergen.Function_defContext) {
 	fnCtx := ctx.Function_name().(*parsergen.Function_nameContext)

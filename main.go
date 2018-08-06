@@ -31,6 +31,7 @@ import (
 var shouldRun bool = true
 
 func main() {
+	logrus.Info("Scripty interactive shell!!")
 	logrus.Infof("llvm version: %s", llvm.Version)
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

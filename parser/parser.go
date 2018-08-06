@@ -20,7 +20,10 @@ import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/mhelmich/scripty/parser/ast"
 	"github.com/mhelmich/scripty/parser/parsergen"
+	"llvm.org/git/llvm.git/bindings/go/llvm"
 )
+
+var module llvm.Module
 
 type ParseInfo interface {
 	GetFunctions() map[string]*ast.Function
