@@ -18,18 +18,30 @@ package parser
 
 import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/mhelmich/scripty/parser/ast"
 	"github.com/mhelmich/scripty/parser/parsergen"
+	"github.com/sirupsen/logrus"
 	"llvm.org/git/llvm.git/bindings/go/llvm"
 )
 
+var symbols map[string]llvm.Value
+var context llvm.Context
+var builder llvm.Builder
 var module llvm.Module
 
-type ParseInfo interface {
-	GetFunctions() map[string]*ast.Function
+func init() {
+	llvm.LinkInMCJIT()
+	err := llvm.InitializeNativeTarget()
+	if err != nil {
+		logrus.Errorf("Can't init native target: %s", err.Error())
+	}
+
+	symbols = make(map[string]llvm.Value)
+	context = llvm.NewContext()
+	builder = context.NewBuilder()
+	module = llvm.NewModule("module")
 }
 
-func Parse(input string) ParseInfo {
+func Parse(input string) {
 	is := antlr.NewInputStream(input)
 	lexer := parsergen.NewscriptyLexer(is)
 	ts := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
@@ -38,5 +50,7 @@ func Parse(input string) ParseInfo {
 
 	listener := newScriptyListener()
 	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
-	return listener
+	logrus.Infof("IR:\n%s", module.String())
+	logrus.Info("==========================")
+	module.Dump()
 }

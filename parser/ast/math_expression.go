@@ -18,10 +18,11 @@ package ast
 
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-type StringLiteralExpression struct {
-	Str string
+type MathExpression struct {
+	varOrLiterals []VarOrLiteral
+	operands      []string
 }
 
-func (sle *StringLiteralExpression) GenCode() llvm.Value {
-	return llvm.ConstString(sle.Str, false)
+func (me *MathExpression) GenCode() llvm.Value {
+	return llvm.Value{}
 }

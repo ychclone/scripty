@@ -23,5 +23,5 @@ type NumberLiteralExpression struct {
 }
 
 func (nle *NumberLiteralExpression) GenCode() llvm.Value {
-	return llvm.Value{}
+	return llvm.ConstFloat(llvm.DoubleType(), nle.Num)
 }

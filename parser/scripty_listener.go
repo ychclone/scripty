@@ -19,6 +19,7 @@ package parser
 import (
 	"strconv"
 
+	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/mhelmich/scripty/parser/ast"
 	"github.com/mhelmich/scripty/parser/parsergen"
 	"github.com/sirupsen/logrus"
@@ -27,7 +28,7 @@ import (
 func newScriptyListener() *scriptyListener {
 	return &scriptyListener{
 		functions:   make(map[string]*ast.Function),
-		expressions: make(map[*parsergen.LiteralContext]ast.CodeGenerator),
+		expressions: make(map[antlr.ParserRuleContext]ast.CodeGenerator),
 	}
 }
 
@@ -35,14 +36,14 @@ type scriptyListener struct {
 	*parsergen.BasescriptyListener
 
 	functions   map[string]*ast.Function
-	expressions map[*parsergen.LiteralContext]ast.CodeGenerator
+	expressions map[antlr.ParserRuleContext]ast.CodeGenerator
 }
 
+////////////////////////////////////////////////////////
+/////////////////////////////////////////
+//              ENTER PASS
+
 func (sl *scriptyListener) EnterProgram(ctx *parsergen.ProgramContext) {}
-
-func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {}
-
-func (sl *scriptyListener) EnterExpression(ctx *parsergen.ExpressionContext) {}
 
 func (sl *scriptyListener) EnterFunction_def(ctx *parsergen.Function_defContext) {
 	fnCtx := ctx.Function_name().(*parsergen.Function_nameContext)
@@ -77,6 +78,23 @@ func (sl *scriptyListener) EnterLiteral(ctx *parsergen.LiteralContext) {
 	}
 }
 
-func (sl *scriptyListener) GetFunctions() map[string]*ast.Function {
-	return sl.functions
+////////////////////////////////////////////////////////
+/////////////////////////////////////////
+//              EXIT PASS
+
+func (sl *scriptyListener) ExitVar_or_literal(ctx *parsergen.Var_or_literalContext) {
+	var key antlr.ParserRuleContext
+	if ctx.Literal() != nil {
+		key = ctx.Literal()
+	} else if ctx.Variable() != nil {
+		key = ctx.Variable()
+	}
+
+	gen, ok := sl.expressions[key]
+	if !ok {
+		logrus.Errorf("Can't find variable: %s", key.GetText())
+	}
+	sl.expressions[ctx] = &ast.VarOrLiteral{
+		Child: gen,
+	}
 }

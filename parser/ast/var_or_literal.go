@@ -18,10 +18,10 @@ package ast
 
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-type StringLiteralExpression struct {
-	Str string
+type VarOrLiteral struct {
+	Child CodeGenerator
 }
 
-func (sle *StringLiteralExpression) GenCode() llvm.Value {
-	return llvm.ConstString(sle.Str, false)
+func (vol *VarOrLiteral) GenCode() llvm.Value {
+	return vol.Child.GenCode()
 }
