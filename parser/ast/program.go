@@ -18,10 +18,10 @@ package ast
 
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-type ProgramAst struct {
-	functions map[string]*FunctionAst
+type Program struct {
+	functions map[string]*Function
 }
 
-func (pa *ProgramAst) GenCode() llvm.Value {
+func (pa *Program) GenCode() llvm.Value {
 	return llvm.Value{}
 }

@@ -18,8 +18,8 @@ package ast
 
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-type AbstractExpressionAst struct{}
+type AbstractExpression struct{}
 
-func (ae *AbstractExpressionAst) GenCode() llvm.Value {
+func (ae *AbstractExpression) GenCode() llvm.Value {
 	return llvm.Value{}
 }

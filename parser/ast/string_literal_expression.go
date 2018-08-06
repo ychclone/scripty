@@ -14,26 +14,9 @@
  * limitations under the License.
  */
 
-package parser
+package ast
 
-import (
-	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/mhelmich/scripty/parser/ast"
-	"github.com/mhelmich/scripty/parser/parsergen"
-)
-
-type ParseInfo interface {
-	GetFunctions() map[string]*ast.Function
-}
-
-func Parse(input string) ParseInfo {
-	is := antlr.NewInputStream(input)
-	lexer := parsergen.NewscriptyLexer(is)
-	ts := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
-	parser := parsergen.NewscriptyParser(ts)
-	rootCtx := parser.Program()
-
-	listener := newScriptyListener()
-	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
-	return listener
+type StringLiteralExpression struct {
+	*AbstractExpression
+	Str string
 }

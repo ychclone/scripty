@@ -17,21 +17,24 @@
 package parser
 
 import (
+	"strconv"
+
 	"github.com/mhelmich/scripty/parser/ast"
 	"github.com/mhelmich/scripty/parser/parsergen"
 	"github.com/sirupsen/logrus"
 )
 
-func NewScriptyListener() *scriptyListener {
+func newScriptyListener() *scriptyListener {
 	return &scriptyListener{
-		functions: make(map[string]*ast.FunctionAst),
+		functions: make(map[string]*ast.Function),
 	}
 }
 
 type scriptyListener struct {
 	*parsergen.BasescriptyListener
 
-	functions map[string]*ast.FunctionAst
+	functions   map[string]*ast.Function
+	expressions map[*parsergen.LiteralContext]*ast.AbstractExpression
 }
 
 func (sl *scriptyListener) EnterProgram(ctx *parsergen.ProgramContext) {}
@@ -47,7 +50,7 @@ func (sl *scriptyListener) EnterFunction_def(ctx *parsergen.Function_defContext)
 	funcName := fnCtx.NAME().GetText()
 	paramsCtx := ctx.Parameter_defs().(*parsergen.Parameter_defsContext)
 	params := paramsCtx.AllNAME()
-	funcAst := &ast.FunctionAst{
+	funcAst := &ast.Function{
 		Name:   funcName,
 		Params: params,
 	}
@@ -55,6 +58,26 @@ func (sl *scriptyListener) EnterFunction_def(ctx *parsergen.Function_defContext)
 	sl.functions[funcAst.SignatureHash()] = funcAst
 }
 
-func (sl *scriptyListener) GetFunctions() map[string]*ast.FunctionAst {
+func (sl *scriptyListener) EnterLiteral(ctx *parsergen.LiteralContext) {
+	if ctx.NUMBER() != nil {
+		numAsString := ctx.NUMBER().GetText()
+		f, err := strconv.ParseFloat(numAsString, 64)
+		if err != nil {
+			logrus.Errorf("Can't convert string to number: %s", err.Error())
+		}
+		nle := &NumberLiteralExpression{
+			Num: f,
+		}
+		sl.expressions[ctx] = nle
+	} else if ctx.STRING() != nil {
+		str := ctx.STRING().GetText()
+		sle := &StringLiteralExpression{
+			Str: str,
+		}
+		sl.expressions[ctx] = sle
+	}
+}
+
+func (sl *scriptyListener) GetFunctions() map[string]*ast.Function {
 	return sl.functions
 }

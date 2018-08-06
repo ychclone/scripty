@@ -23,16 +23,16 @@ import (
 	"llvm.org/git/llvm.git/bindings/go/llvm"
 )
 
-type FunctionAst struct {
+type Function struct {
 	Name   string
 	Params []antlr.TerminalNode
-	Body   []*AbstractExpressionAst
+	Body   []*AbstractExpression
 }
 
-func (fa *FunctionAst) SignatureHash() string {
+func (fa *Function) SignatureHash() string {
 	return fa.Name + "_" + strconv.Itoa(len(fa.Params))
 }
 
-func (fa *FunctionAst) GenCode() llvm.Value {
+func (fa *Function) GenCode() llvm.Value {
 	return llvm.Value{}
 }
