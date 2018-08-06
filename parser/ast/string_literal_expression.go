@@ -16,7 +16,12 @@
 
 package ast
 
+import "llvm.org/git/llvm.git/bindings/go/llvm"
+
 type StringLiteralExpression struct {
-	*AbstractExpression
 	Str string
+}
+
+func (nle *StringLiteralExpression) GenCode() llvm.Value {
+	return llvm.Value{}
 }
