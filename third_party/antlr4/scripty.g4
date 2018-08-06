@@ -17,20 +17,20 @@ expression: (assignment | function_call | expr) ;
 expr: math_expression | boolean_expression | var_or_literal ;
 
 assignment:
-      NAME ASSIGNMENT_OP NAME STMT_END
-    | NAME ASSIGNMENT_OP (boolean_expression | math_expression) STMT_END
-    | NAME ASSIGNMENT_OP function_call STMT_END
+      NAME ASSIGNMENT_OP NAME
+    | NAME ASSIGNMENT_OP (boolean_expression | math_expression)
+    | NAME ASSIGNMENT_OP function_call
     ;
 
-function_call: NAME '(' (expr (',' expr)*)? ')' STMT_END ;
+function_call: NAME '(' (expr (',' expr)*)? ')' ;
 
 boolean_expression: var_or_literal BOOLEAN_OP var_or_literal (BOOLEAN_OP var_or_literal)* ;
 
 math_expression: var_or_literal ARITHMETIC_OP var_or_literal (ARITHMETIC_OP var_or_literal)* ;
 
-var_or_literal: var | literal ;
+var_or_literal: variable | literal ;
 
-var: NAME;
+variable: NAME;
 
 literal: NUMBER | STRING;
 

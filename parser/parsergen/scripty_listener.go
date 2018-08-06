@@ -43,8 +43,8 @@ type scriptyListener interface {
 	// EnterVar_or_literal is called when entering the var_or_literal production.
 	EnterVar_or_literal(c *Var_or_literalContext)
 
-	// EnterVar is called when entering the var production.
-	EnterVar(c *VarContext)
+	// EnterVariable is called when entering the variable production.
+	EnterVariable(c *VariableContext)
 
 	// EnterLiteral is called when entering the literal production.
 	EnterLiteral(c *LiteralContext)
@@ -85,8 +85,8 @@ type scriptyListener interface {
 	// ExitVar_or_literal is called when exiting the var_or_literal production.
 	ExitVar_or_literal(c *Var_or_literalContext)
 
-	// ExitVar is called when exiting the var production.
-	ExitVar(c *VarContext)
+	// ExitVariable is called when exiting the variable production.
+	ExitVariable(c *VariableContext)
 
 	// ExitLiteral is called when exiting the literal production.
 	ExitLiteral(c *LiteralContext)

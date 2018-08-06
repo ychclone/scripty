@@ -92,11 +92,11 @@ func (s *BasescriptyListener) EnterVar_or_literal(ctx *Var_or_literalContext) {}
 // ExitVar_or_literal is called when production var_or_literal is exited.
 func (s *BasescriptyListener) ExitVar_or_literal(ctx *Var_or_literalContext) {}
 
-// EnterVar is called when production var is entered.
-func (s *BasescriptyListener) EnterVar(ctx *VarContext) {}
+// EnterVariable is called when production variable is entered.
+func (s *BasescriptyListener) EnterVariable(ctx *VariableContext) {}
 
-// ExitVar is called when production var is exited.
-func (s *BasescriptyListener) ExitVar(ctx *VarContext) {}
+// ExitVariable is called when production variable is exited.
+func (s *BasescriptyListener) ExitVariable(ctx *VariableContext) {}
 
 // EnterLiteral is called when production literal is entered.
 func (s *BasescriptyListener) EnterLiteral(ctx *LiteralContext) {}

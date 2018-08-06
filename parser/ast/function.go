@@ -26,7 +26,7 @@ import (
 type Function struct {
 	Name   string
 	Params []antlr.TerminalNode
-	Body   []*AbstractExpression
+	Body   []CodeGenerator
 }
 
 func (fa *Function) SignatureHash() string {
