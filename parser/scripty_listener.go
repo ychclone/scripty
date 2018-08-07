@@ -51,10 +51,27 @@ func (sl *scriptyListener) EnterFunction_def(ctx *parsergen.Function_defContext)
 	params := paramsCtx.AllNAME()
 
 	funcAst := &ast.Function{
-		Name:   funcName,
-		Params: params,
+		Proto: &ast.FunctionPrototype{
+			Name:   funcName,
+			Params: params,
+		},
 	}
-	sl.functions[funcAst.SignatureHash()] = funcAst
+
+	funcSig := funcAst.SignatureHash()
+	_, ok := sl.functions[funcSig]
+	if ok {
+		logrus.Errorf("Function with signature '%s' exists already", funcSig)
+		return
+	}
+
+	sl.functions[funcSig] = funcAst
+}
+
+func (sl *scriptyListener) EnterVariable(ctx *parsergen.VariableContext) {
+	n := ctx.NAME().GetText()
+	sl.expressions[ctx] = &ast.Variable{
+		Name: n,
+	}
 }
 
 func (sl *scriptyListener) EnterLiteral(ctx *parsergen.LiteralContext) {
@@ -89,7 +106,7 @@ func (sl *scriptyListener) ExitVar_or_literal(ctx *parsergen.Var_or_literalConte
 
 	gen, ok := sl.expressions[key]
 	if !ok {
-		logrus.Errorf("Can't find variable: %s", key.GetText())
+		logrus.Errorf("Can't find variable or literal: %s", key.GetText())
 		return
 	}
 	sl.expressions[ctx] = &ast.VarOrLiteral{
@@ -125,7 +142,7 @@ func (sl *scriptyListener) ExitExpr(ctx *parsergen.ExprContext) {
 	} // TODO -- add other possibilities here
 
 	if key == nil {
-		logrus.Errorf("Can't find a good key")
+		logrus.Errorf("Can't find a good key in expr")
 		return
 	}
 
@@ -160,6 +177,35 @@ func (sl *scriptyListener) ExitExpression(ctx *parsergen.ExpressionContext) {
 	}
 }
 
+func (sl *scriptyListener) ExitFunction_def(ctx *parsergen.Function_defContext) {
+	fnCtx := ctx.Function_name().(*parsergen.Function_nameContext)
+	funcName := fnCtx.NAME().GetText()
+	paramsCtx := ctx.Parameter_defs().(*parsergen.Parameter_defsContext)
+	params := paramsCtx.AllNAME()
+
+	proto := &ast.FunctionPrototype{
+		Name:   funcName,
+		Params: params,
+	}
+
+	f, ok := sl.functions[proto.SignatureHash()]
+	if !ok {
+		logrus.Errorf("Can't find function with signature '%s'", proto.SignatureHash())
+	}
+
+	funcExprCtx := ctx.Function_expressions().(*parsergen.Function_expressionsContext)
+	logrus.Infof("funcExprCtx: %s", funcExprCtx.GetText())
+	codegen, ok := sl.expressions[funcExprCtx.Expression(0)]
+	if !ok {
+		logrus.Errorf("Can't find expression for '%s'", funcExprCtx.Expression(0).GetText())
+	}
+
+	expr := codegen.(*ast.Expression)
+	f.Body = &ast.FunctionBody{
+		Expression: expr,
+	}
+}
+
 func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {
 	numExpressions := len(ctx.AllExpression())
 	logrus.Infof("found %d top-level expressions", numExpressions)
@@ -173,7 +219,23 @@ func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {
 		tle[i] = e.(*ast.Expression)
 	}
 
+	logrus.Infof("found %d functions", len(ctx.AllFunction_def()))
 	fs := make(map[string]*ast.Function)
+	for _, feTmp := range ctx.AllFunction_def() {
+		fe := feTmp.(*parsergen.Function_defContext)
+		fnCtx := fe.Function_name().(*parsergen.Function_nameContext)
+		funcName := fnCtx.NAME().GetText()
+		paramsCtx := fe.Parameter_defs().(*parsergen.Parameter_defsContext)
+		params := paramsCtx.AllNAME()
+
+		proto := &ast.FunctionPrototype{
+			Name:   funcName,
+			Params: params,
+		}
+		fn := sl.functions[proto.SignatureHash()]
+
+		fs[funcName] = fn
+	}
 
 	sl.theProgram = &ast.Program{
 		Functions:           fs,

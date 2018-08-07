@@ -16,26 +16,12 @@
 
 package ast
 
-import (
-	"llvm.org/git/llvm.git/bindings/go/llvm"
-)
+import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-type Function struct {
-	Proto *FunctionPrototype
-	Body  *FunctionBody
+type Variable struct {
+	Name string
 }
 
-func (f *Function) SignatureHash() string {
-	return f.Proto.SignatureHash()
-}
-
-func (f *Function) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
-	fction := f.Proto.GenCode(ctx, module)
-	bb := ctx.AddBasicBlock(fction, "entry-point-"+f.Proto.Name)
-	builder := ctx.NewBuilder()
-	defer builder.Dispose()
-	builder.SetInsertPointAtEnd(bb)
-	builder.CreateRet(f.Body.GenCode(builder))
-	fction.Dump()
-	return fction
+func (v *Variable) GenCode(builder llvm.Builder) llvm.Value {
+	return llvm.Value{}
 }

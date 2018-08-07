@@ -18,8 +18,10 @@ package ast
 
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-type FunctionBody struct{}
+type FunctionBody struct {
+	Expression *Expression
+}
 
 func (fb *FunctionBody) GenCode(builder llvm.Builder) llvm.Value {
-	return llvm.Value{}
+	return fb.Expression.GenCode(builder)
 }
