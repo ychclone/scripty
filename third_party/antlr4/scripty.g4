@@ -38,7 +38,7 @@ ASSIGNMENT_OP: '=' ;
 
 STMT_END: ';' ;
 
-BOOLEAN_OP: '&&' | '||' ;
+BOOLEAN_OP: '&&' | '||' | '<' | '>' | '==' ;
 
 ARITHMETIC_OP: '+' | '-' | '*' | '/' ;
 
