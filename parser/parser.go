@@ -23,9 +23,6 @@ import (
 	"llvm.org/git/llvm.git/bindings/go/llvm"
 )
 
-var symbols map[string]llvm.Value
-var llvmCtx llvm.Context
-var builder llvm.Builder
 var module llvm.Module
 
 func init() {
@@ -35,10 +32,7 @@ func init() {
 		logrus.Errorf("Can't init native target: %s", err.Error())
 	}
 
-	symbols = make(map[string]llvm.Value)
-	llvmCtx = llvm.NewContext()
-	builder = llvmCtx.NewBuilder()
-	module = llvmCtx.NewModule("module")
+	module = llvm.NewModule("module")
 }
 
 func Parse(input string) {
@@ -50,6 +44,12 @@ func Parse(input string) {
 
 	listener := newScriptyListener()
 	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
-	listener.theProgram.GenCode(llvmCtx, module)
+	listener.theProgram.GenCode(llvm.NewContext(), module)
+
+	err := llvm.VerifyModule(module, llvm.ReturnStatusAction)
+	if err != nil {
+		logrus.Errorf("Verification failed: %s", err.Error())
+	}
+
 	logrus.Infof("generated IR:\n%s", module.String())
 }

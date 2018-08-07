@@ -129,7 +129,6 @@ func (sl *scriptyListener) ExitExpr(ctx *parsergen.ExprContext) {
 		return
 	}
 
-	logrus.Infof("found math expression %s", key.GetText())
 	gen, ok := sl.expressions[key]
 	if !ok {
 		logrus.Errorf("Can't find expr: %s", key.String(nil, nil))
@@ -150,8 +149,6 @@ func (sl *scriptyListener) ExitExpression(ctx *parsergen.ExpressionContext) {
 		logrus.Errorf("Can't find a good key")
 		return
 	}
-
-	logrus.Infof("found expr %s", key.GetText())
 
 	gen, ok := sl.expressions[key]
 	if !ok {

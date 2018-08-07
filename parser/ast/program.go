@@ -28,8 +28,8 @@ func (p *Program) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
 		module,
 		"top-level-function",
 		llvm.FunctionType(
-			ctx.DoubleType(),
-			[]llvm.Type{ctx.DoubleType(), ctx.DoubleType()},
+			llvm.DoubleType(),
+			[]llvm.Type{llvm.DoubleType(), llvm.DoubleType()},
 			false,
 		),
 	)
@@ -39,10 +39,8 @@ func (p *Program) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
 	defer builder.Dispose()
 	builder.SetInsertPointAtEnd(topLevelBB)
 	for _, e := range p.TopLevelExpressions {
-		e.GenCode(builder)
-		// builder.Insert(e.GenCode(builder))
+		builder.CreateRet(e.GenCode(builder))
 	}
-	builder.CreateRet(llvm.ConstFloat(ctx.DoubleType(), 0))
 
 	return f
 }
