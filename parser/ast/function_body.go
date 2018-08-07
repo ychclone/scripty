@@ -16,23 +16,10 @@
 
 package ast
 
-import (
-	"strconv"
+import "llvm.org/git/llvm.git/bindings/go/llvm"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"llvm.org/git/llvm.git/bindings/go/llvm"
-)
+type FunctionBody struct{}
 
-type Function struct {
-	Name   string
-	Params []antlr.TerminalNode
-	Body   FunctionBody
-}
-
-func (fa *Function) SignatureHash() string {
-	return fa.Name + "_" + strconv.Itoa(len(fa.Params))
-}
-
-func (fa *Function) GenCode(llvmCtx llvm.Context, module llvm.Module) llvm.Value {
+func (fa *Function) GenCode(builder llvm.Builder) llvm.Value {
 	return llvm.Value{}
 }
