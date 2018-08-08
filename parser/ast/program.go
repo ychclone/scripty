@@ -16,7 +16,10 @@
 
 package ast
 
-import "llvm.org/git/llvm.git/bindings/go/llvm"
+import (
+	"github.com/sirupsen/logrus"
+	"llvm.org/git/llvm.git/bindings/go/llvm"
+)
 
 type Program struct {
 	Functions           map[string]*Function
@@ -24,23 +27,32 @@ type Program struct {
 }
 
 func (p *Program) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
-	f := llvm.AddFunction(
-		module,
-		"top-level-function",
-		llvm.FunctionType(
-			llvm.DoubleType(),
-			[]llvm.Type{llvm.DoubleType(), llvm.DoubleType()},
-			false,
-		),
-	)
+	if len(p.TopLevelExpressions) > 0 {
+		f := llvm.AddFunction(
+			module,
+			"top-level-function",
+			llvm.FunctionType(
+				llvm.DoubleType(),
+				[]llvm.Type{llvm.DoubleType(), llvm.DoubleType()},
+				false,
+			),
+		)
 
-	topLevelBB := ctx.AddBasicBlock(f, "entry-point")
-	builder := ctx.NewBuilder()
-	defer builder.Dispose()
-	builder.SetInsertPointAtEnd(topLevelBB)
-	for _, e := range p.TopLevelExpressions {
-		builder.CreateRet(e.GenCode(builder))
+		topLevelBB := ctx.AddBasicBlock(f, "entry-point")
+		builder := ctx.NewBuilder()
+		defer builder.Dispose()
+		builder.SetInsertPointAtEnd(topLevelBB)
+		for _, e := range p.TopLevelExpressions {
+			builder.CreateRet(e.GenCode(builder))
+		}
+
+		return f
+	} else if len(p.Functions) > 0 {
+		for _, fn := range p.Functions {
+			logrus.Infof("GenCode for function: %s", fn.Proto.Name)
+			return fn.GenCode(ctx, module)
+		}
 	}
 
-	return f
+	return llvm.Value{}
 }

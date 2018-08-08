@@ -17,25 +17,40 @@
 package ast
 
 import (
+	"strconv"
+
+	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"llvm.org/git/llvm.git/bindings/go/llvm"
 )
 
-type Function struct {
-	Proto *FunctionPrototype
-	Body  *FunctionBody
+type FunctionPrototype struct {
+	Name   string
+	Params []antlr.TerminalNode
 }
 
-func (f *Function) SignatureHash() string {
-	return f.Proto.SignatureHash()
+func (fp *FunctionPrototype) SignatureHash() string {
+	return fp.Name + "_" + strconv.Itoa(len(fp.Params))
 }
 
-func (f *Function) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
-	fction := f.Proto.GenCode(ctx, module)
-	bb := ctx.AddBasicBlock(fction, "entry-point-"+f.Proto.Name)
-	builder := ctx.NewBuilder()
-	defer builder.Dispose()
-	builder.SetInsertPointAtEnd(bb)
-	builder.CreateRet(f.Body.GenCode(builder))
-	fction.Dump()
-	return fction
+func (fp *FunctionPrototype) GenCode(llvmCtx llvm.Context, module llvm.Module) llvm.Value {
+	params := make([]llvm.Type, len(fp.Params))
+	for idx := range params {
+		params[idx] = llvm.DoubleType()
+	}
+
+	f := llvm.AddFunction(
+		module,
+		fp.Name,
+		llvm.FunctionType(
+			llvm.DoubleType(),
+			params,
+			false,
+		),
+	)
+
+	for idx, param := range f.Params() {
+		param.SetName(fp.Params[idx].GetText())
+	}
+
+	return f
 }
