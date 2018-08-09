@@ -27,9 +27,9 @@ type MathExpression struct {
 	Operand       string
 }
 
-func (me *MathExpression) GenCode(builder llvm.Builder) llvm.Value {
-	lv := me.LeftHandSide.GenCode(builder)
-	rv := me.RightHandSide.GenCode(builder)
+func (me *MathExpression) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
+	lv := me.LeftHandSide.GenCode(sc, builder)
+	rv := me.RightHandSide.GenCode(sc, builder)
 
 	switch me.Operand {
 	case "+":

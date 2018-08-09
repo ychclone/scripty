@@ -19,5 +19,5 @@ package ast
 import "llvm.org/git/llvm.git/bindings/go/llvm"
 
 type StructureGenerator interface {
-	GenCode(llvm.Context, llvm.Module) llvm.Value
+	GenCode(sc *ScopeContext) llvm.Value
 }

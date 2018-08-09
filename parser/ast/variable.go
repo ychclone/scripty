@@ -22,6 +22,6 @@ type Variable struct {
 	Name string
 }
 
-func (v *Variable) GenCode(builder llvm.Builder) llvm.Value {
+func (v *Variable) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
 	return llvm.Value{}
 }

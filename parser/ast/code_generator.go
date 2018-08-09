@@ -16,8 +16,10 @@
 
 package ast
 
-import "llvm.org/git/llvm.git/bindings/go/llvm"
+import (
+	"llvm.org/git/llvm.git/bindings/go/llvm"
+)
 
 type CodeGenerator interface {
-	GenCode(llvm.Builder) llvm.Value
+	GenCode(*ScopeContext, llvm.Builder) llvm.Value
 }

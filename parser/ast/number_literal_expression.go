@@ -22,6 +22,6 @@ type NumberLiteralExpression struct {
 	Num float64
 }
 
-func (nle *NumberLiteralExpression) GenCode(builder llvm.Builder) llvm.Value {
+func (nle *NumberLiteralExpression) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
 	return llvm.ConstFloat(llvm.DoubleType(), nle.Num)
 }

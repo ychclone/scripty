@@ -22,6 +22,6 @@ type FunctionBody struct {
 	Expression *Expression
 }
 
-func (fb *FunctionBody) GenCode(builder llvm.Builder) llvm.Value {
-	return fb.Expression.GenCode(builder)
+func (fb *FunctionBody) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
+	return fb.Expression.GenCode(sc, builder)
 }

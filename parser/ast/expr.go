@@ -22,6 +22,6 @@ type Expr struct {
 	Child CodeGenerator
 }
 
-func (e *Expr) GenCode(builder llvm.Builder) llvm.Value {
-	return e.Child.GenCode(builder)
+func (e *Expr) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
+	return e.Child.GenCode(sc, builder)
 }

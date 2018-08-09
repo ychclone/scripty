@@ -16,12 +16,14 @@
 
 package ast
 
-import "llvm.org/git/llvm.git/bindings/go/llvm"
+import (
+	"llvm.org/git/llvm.git/bindings/go/llvm"
+)
 
 type Expression struct {
 	Child CodeGenerator
 }
 
-func (e *Expression) GenCode(builder llvm.Builder) llvm.Value {
-	return e.Child.GenCode(builder)
+func (e *Expression) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
+	return e.Child.GenCode(sc, builder)
 }

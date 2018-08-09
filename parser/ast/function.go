@@ -29,13 +29,13 @@ func (f *Function) SignatureHash() string {
 	return f.Proto.SignatureHash()
 }
 
-func (f *Function) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
-	fction := f.Proto.GenCode(ctx, module)
-	bb := ctx.AddBasicBlock(fction, "entry-point-"+f.Proto.Name)
-	builder := ctx.NewBuilder()
+func (f *Function) GenCode(sc *ScopeContext) llvm.Value {
+	fction := f.Proto.GenCode(sc.LlvmCtx(), sc.Module())
+	bb := sc.LlvmCtx().AddBasicBlock(fction, "entry-point-"+f.Proto.Name)
+	builder := sc.LlvmCtx().NewBuilder()
 	defer builder.Dispose()
 	builder.SetInsertPointAtEnd(bb)
-	builder.CreateRet(f.Body.GenCode(builder))
+	builder.CreateRet(f.Body.GenCode(sc, builder))
 	fction.Dump()
 	return fction
 }

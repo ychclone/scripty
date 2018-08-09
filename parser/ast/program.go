@@ -26,10 +26,10 @@ type Program struct {
 	TopLevelExpressions []*Expression
 }
 
-func (p *Program) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
+func (p *Program) GenCode(sc *ScopeContext) llvm.Value {
 	if len(p.TopLevelExpressions) > 0 {
 		f := llvm.AddFunction(
-			module,
+			sc.Module(),
 			"top-level-function",
 			llvm.FunctionType(
 				llvm.DoubleType(),
@@ -38,19 +38,19 @@ func (p *Program) GenCode(ctx llvm.Context, module llvm.Module) llvm.Value {
 			),
 		)
 
-		topLevelBB := ctx.AddBasicBlock(f, "entry-point")
-		builder := ctx.NewBuilder()
+		topLevelBB := sc.LlvmCtx().AddBasicBlock(f, "entry-point")
+		builder := sc.LlvmCtx().NewBuilder()
 		defer builder.Dispose()
 		builder.SetInsertPointAtEnd(topLevelBB)
 		for _, e := range p.TopLevelExpressions {
-			builder.CreateRet(e.GenCode(builder))
+			builder.CreateRet(e.GenCode(sc, builder))
 		}
 
 		return f
 	} else if len(p.Functions) > 0 {
 		for _, fn := range p.Functions {
 			logrus.Infof("GenCode for function: %s", fn.Proto.Name)
-			return fn.GenCode(ctx, module)
+			return fn.GenCode(sc)
 		}
 	}
 

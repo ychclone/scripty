@@ -22,6 +22,6 @@ type StringLiteralExpression struct {
 	Str string
 }
 
-func (sle *StringLiteralExpression) GenCode(builder llvm.Builder) llvm.Value {
+func (sle *StringLiteralExpression) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
 	return llvm.ConstString(sle.Str, false)
 }

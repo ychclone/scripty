@@ -18,6 +18,7 @@ package parser
 
 import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"github.com/mhelmich/scripty/parser/ast"
 	"github.com/mhelmich/scripty/parser/parsergen"
 	"github.com/sirupsen/logrus"
 	"llvm.org/git/llvm.git/bindings/go/llvm"
@@ -44,7 +45,8 @@ func Parse(input string) {
 
 	listener := newScriptyListener()
 	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
-	listener.theProgram.GenCode(llvm.NewContext(), module)
+	sc := ast.NewScopeContext(llvm.NewContext(), module)
+	listener.theProgram.GenCode(sc)
 
 	err := llvm.VerifyModule(module, llvm.ReturnStatusAction)
 	if err != nil {
