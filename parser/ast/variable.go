@@ -16,12 +16,21 @@
 
 package ast
 
-import "llvm.org/git/llvm.git/bindings/go/llvm"
+import (
+	"github.com/sirupsen/logrus"
+	"llvm.org/git/llvm.git/bindings/go/llvm"
+)
 
 type Variable struct {
 	Name string
 }
 
 func (v *Variable) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
-	return llvm.Value{}
+	val := sc.Get(v.Name)
+	if val == nil {
+		logrus.Errorf("Can't find variable '%s'", v.Name)
+		return llvm.Value{}
+	}
+
+	return val.(llvm.Value)
 }

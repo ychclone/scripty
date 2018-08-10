@@ -30,12 +30,13 @@ func (f *Function) SignatureHash() string {
 }
 
 func (f *Function) GenCode(sc *ScopeContext) llvm.Value {
-	fction := f.Proto.GenCode(sc.LlvmCtx(), sc.Module())
-	bb := sc.LlvmCtx().AddBasicBlock(fction, "entry-point-"+f.Proto.Name)
-	builder := sc.LlvmCtx().NewBuilder()
+	fsc := sc.CreateChildScope()
+	fction := f.Proto.GenCode(fsc)
+	bb := fsc.LlvmCtx().AddBasicBlock(fction, "entry-point-"+f.Proto.Name)
+	builder := fsc.LlvmCtx().NewBuilder()
 	defer builder.Dispose()
 	builder.SetInsertPointAtEnd(bb)
-	builder.CreateRet(f.Body.GenCode(sc, builder))
+	builder.CreateRet(f.Body.GenCode(fsc, builder))
 	fction.Dump()
 	return fction
 }

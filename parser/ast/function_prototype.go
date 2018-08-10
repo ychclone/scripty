@@ -32,24 +32,26 @@ func (fp *FunctionPrototype) SignatureHash() string {
 	return fp.Name + "_" + strconv.Itoa(len(fp.Params))
 }
 
-func (fp *FunctionPrototype) GenCode(llvmCtx llvm.Context, module llvm.Module) llvm.Value {
+func (fp *FunctionPrototype) GenCode(sc *ScopeContext) llvm.Value {
 	params := make([]llvm.Type, len(fp.Params))
 	for idx := range params {
-		params[idx] = llvm.DoubleType()
+		params[idx] = sc.LlvmCtx().DoubleType()
 	}
 
 	f := llvm.AddFunction(
-		module,
+		sc.Module(),
 		fp.Name,
 		llvm.FunctionType(
-			llvm.DoubleType(),
+			sc.LlvmCtx().DoubleType(),
 			params,
 			false,
 		),
 	)
 
 	for idx, param := range f.Params() {
-		param.SetName(fp.Params[idx].GetText())
+		paramName := fp.Params[idx].GetText()
+		param.SetName(paramName)
+		sc.Set(paramName, param)
 	}
 
 	return f
