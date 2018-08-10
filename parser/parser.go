@@ -24,6 +24,7 @@ import (
 	"llvm.org/git/llvm.git/bindings/go/llvm"
 )
 
+var context llvm.Context
 var module llvm.Module
 
 func init() {
@@ -33,7 +34,8 @@ func init() {
 		logrus.Errorf("Can't init native target: %s", err.Error())
 	}
 
-	module = llvm.NewModule("module")
+	context = llvm.NewContext()
+	module = context.NewModule("root-module")
 }
 
 func Parse(input string) {
@@ -45,10 +47,10 @@ func Parse(input string) {
 
 	listener := newScriptyListener()
 	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
-	sc := ast.NewScopeContext(llvm.NewContext(), module)
+	sc := ast.NewScopeContext(context, module)
 	listener.theProgram.GenCode(sc)
 
-	err := llvm.VerifyModule(module, llvm.ReturnStatusAction)
+	err := llvm.VerifyModule(module, llvm.PrintMessageAction)
 	if err != nil {
 		logrus.Errorf("Verification failed: %s", err.Error())
 	}

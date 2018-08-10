@@ -17,6 +17,7 @@
 package ast
 
 import (
+	"github.com/sirupsen/logrus"
 	"llvm.org/git/llvm.git/bindings/go/llvm"
 )
 
@@ -37,6 +38,11 @@ func (f *Function) GenCode(sc *ScopeContext) llvm.Value {
 	defer builder.Dispose()
 	builder.SetInsertPointAtEnd(bb)
 	builder.CreateRet(f.Body.GenCode(fsc, builder))
-	fction.Dump()
+
+	err := llvm.VerifyFunction(fction, llvm.PrintMessageAction)
+	if err != nil {
+		logrus.Errorf("Verification failed: %s", err.Error())
+	}
+
 	return fction
 }
