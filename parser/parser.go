@@ -48,12 +48,37 @@ func Parse(input string) {
 	listener := newScriptyListener()
 	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
 	sc := ast.NewScopeContext(context, module)
-	listener.theProgram.GenCode(sc)
+	maybeTopLevelFunc := listener.theProgram.GenCode(sc)
 
 	err := llvm.VerifyModule(module, llvm.PrintMessageAction)
 	if err != nil {
 		logrus.Errorf("Verification failed: %s", err.Error())
 	}
 
+	pass := llvm.NewFunctionPassManagerForModule(module)
+	defer pass.Dispose()
+	pass.AddConstantPropagationPass()
+	pass.AddInstructionCombiningPass()
+	pass.AddPromoteMemoryToRegisterPass()
+	pass.AddGVNPass()
+	pass.AddCFGSimplificationPass()
+	if !pass.Run(module) {
+		logrus.Info("Pointless optimization passes")
+	}
+
+	if len(listener.theProgram.TopLevelExpressions) > 0 {
+		engineOpts := llvm.NewMCJITCompilerOptions()
+		engineOpts.SetMCJITOptimizationLevel(2)
+		engine, err := llvm.NewMCJITCompiler(module, engineOpts)
+		if err != nil {
+			logrus.Errorf("Can't create compiler: %s", err.Error())
+			return
+		}
+		defer engine.Dispose()
+
+		args := []llvm.GenericValue{llvm.NewGenericValueFromFloat(sc.LlvmCtx().DoubleType(), 0), llvm.NewGenericValueFromFloat(sc.LlvmCtx().DoubleType(), 0)}
+		res := engine.RunFunction(maybeTopLevelFunc, args)
+		logrus.Infof("result: %d", res.Float(sc.LlvmCtx().DoubleType()))
+	}
 	logrus.Infof("generated IR:\n%s", module.String())
 }

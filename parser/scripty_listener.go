@@ -250,8 +250,8 @@ func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {
 			Name:   funcName,
 			Params: params,
 		}
-		fn := sl.functions[proto.SignatureHash()]
 
+		fn := sl.functions[proto.SignatureHash()]
 		fs[funcName] = fn
 	}
 
