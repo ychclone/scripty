@@ -139,6 +139,8 @@ func (sl *scriptyListener) ExitExpr(ctx *parsergen.ExprContext) {
 	var key antlr.ParserRuleContext
 	if ctx.Math_expression() != nil {
 		key = ctx.Math_expression()
+	} else if ctx.Var_or_literal() != nil {
+		key = ctx.Var_or_literal()
 	} // TODO -- add other possibilities here
 
 	if key == nil {
@@ -156,14 +158,31 @@ func (sl *scriptyListener) ExitExpr(ctx *parsergen.ExprContext) {
 	}
 }
 
+func (sl *scriptyListener) ExitFunction_call(ctx *parsergen.Function_callContext) {
+	fName := ctx.NAME().GetText()
+
+	exprs := ctx.AllExpr()
+	params := make([]string, len(exprs))
+	for idx, expr := range ctx.AllExpr() {
+		params[idx] = expr.GetText()
+	}
+
+	sl.expressions[ctx] = &ast.FunctionCall{
+		FunctionName: fName,
+		Params:       params,
+	}
+}
+
 func (sl *scriptyListener) ExitExpression(ctx *parsergen.ExpressionContext) {
 	var key antlr.ParserRuleContext
 	if ctx.Expr() != nil {
 		key = ctx.Expr()
+	} else if ctx.Function_call() != nil {
+		key = ctx.Function_call()
 	} // TODO -- add other possibilities here
 
 	if key == nil {
-		logrus.Errorf("Can't find a good key")
+		logrus.Errorf("Can't find a good key in expression")
 		return
 	}
 

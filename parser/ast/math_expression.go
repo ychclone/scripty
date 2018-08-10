@@ -31,10 +31,6 @@ func (me *MathExpression) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.V
 	lv := me.LeftHandSide.GenCode(sc, builder)
 	rv := me.RightHandSide.GenCode(sc, builder)
 
-	lv.Dump()
-	logrus.Info("")
-	rv.Dump()
-
 	switch me.Operand {
 	case "+":
 		return builder.CreateFAdd(lv, rv, "add_tmp")

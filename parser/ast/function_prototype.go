@@ -56,5 +56,6 @@ func (fp *FunctionPrototype) GenCode(sc *ScopeContext) llvm.Value {
 		sc.Set(paramName, param)
 	}
 
+	sc.Set(fp.Name, f)
 	return f
 }

@@ -32,8 +32,8 @@ func (p *Program) GenCode(sc *ScopeContext) llvm.Value {
 			sc.Module(),
 			"top-level-function",
 			llvm.FunctionType(
-				llvm.DoubleType(),
-				[]llvm.Type{llvm.DoubleType(), llvm.DoubleType()},
+				sc.LlvmCtx().DoubleType(),
+				[]llvm.Type{sc.LlvmCtx().DoubleType(), sc.LlvmCtx().DoubleType()},
 				false,
 			),
 		)
