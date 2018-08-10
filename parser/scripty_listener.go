@@ -194,7 +194,6 @@ func (sl *scriptyListener) ExitFunction_def(ctx *parsergen.Function_defContext) 
 	}
 
 	funcExprCtx := ctx.Function_expressions().(*parsergen.Function_expressionsContext)
-	logrus.Infof("funcExprCtx: %s", funcExprCtx.GetText())
 	codegen, ok := sl.expressions[funcExprCtx.Expression(0)]
 	if !ok {
 		logrus.Errorf("Can't find expression for '%s'", funcExprCtx.Expression(0).GetText())

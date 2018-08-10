@@ -23,5 +23,5 @@ type StringLiteralExpression struct {
 }
 
 func (sle *StringLiteralExpression) GenCode(sc *ScopeContext, builder llvm.Builder) llvm.Value {
-	return llvm.ConstString(sle.Str, false)
+	return sc.LlvmCtx().ConstString(sle.Str, false)
 }

@@ -48,6 +48,8 @@ func (fp *FunctionPrototype) GenCode(sc *ScopeContext) llvm.Value {
 		),
 	)
 
+	f.SetFunctionCallConv(llvm.CCallConv)
+
 	for idx, param := range f.Params() {
 		paramName := fp.Params[idx].GetText()
 		param.SetName(paramName)
