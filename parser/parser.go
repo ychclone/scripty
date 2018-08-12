@@ -17,6 +17,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/mhelmich/scripty/parser/ast"
 	"github.com/mhelmich/scripty/parser/parsergen"
@@ -34,8 +36,17 @@ func init() {
 		logrus.Errorf("Can't init native target: %s", err.Error())
 	}
 
+	err = llvm.InitializeNativeAsmPrinter()
+	if err != nil {
+		logrus.Errorf("Can't init native asm printer: %s", err.Error())
+	}
+
 	context = llvm.NewContext()
 	module = context.NewModule("root-module")
+}
+
+func PrintIR() {
+	fmt.Printf("generated IR:\n%s", module.String())
 }
 
 func Parse(input string) {
@@ -48,37 +59,41 @@ func Parse(input string) {
 	listener := newScriptyListener()
 	antlr.ParseTreeWalkerDefault.Walk(listener, rootCtx)
 	sc := ast.NewScopeContext(context, module)
-	maybeTopLevelFunc := listener.theProgram.GenCode(sc)
+	listener.theProgram.GenCode(sc)
 
 	err := llvm.VerifyModule(module, llvm.PrintMessageAction)
 	if err != nil {
 		logrus.Errorf("Verification failed: %s", err.Error())
 	}
 
-	pass := llvm.NewFunctionPassManagerForModule(module)
-	defer pass.Dispose()
-	pass.AddConstantPropagationPass()
-	pass.AddInstructionCombiningPass()
-	pass.AddPromoteMemoryToRegisterPass()
-	pass.AddGVNPass()
-	pass.AddCFGSimplificationPass()
-	if !pass.Run(module) {
-		logrus.Info("Pointless optimization passes")
-	}
+	logrus.Debugf("generated IR:\n%s", module.String())
 
 	if len(listener.theProgram.TopLevelExpressions) > 0 {
-		engineOpts := llvm.NewMCJITCompilerOptions()
-		engineOpts.SetMCJITOptimizationLevel(2)
-		engine, err := llvm.NewMCJITCompiler(module, engineOpts)
+		options := llvm.NewMCJITCompilerOptions()
+		options.SetMCJITOptimizationLevel(2)
+		options.SetMCJITEnableFastISel(true)
+		options.SetMCJITNoFramePointerElim(true)
+		options.SetMCJITCodeModel(llvm.CodeModelJITDefault)
+		engine, err := llvm.NewMCJITCompiler(module, options)
 		if err != nil {
-			logrus.Errorf("Can't create compiler: %s", err.Error())
+			logrus.Errorf("Error creating JIT: %s", err)
 			return
 		}
 		defer engine.Dispose()
 
-		args := []llvm.GenericValue{llvm.NewGenericValueFromFloat(sc.LlvmCtx().DoubleType(), 0), llvm.NewGenericValueFromFloat(sc.LlvmCtx().DoubleType(), 0)}
-		res := engine.RunFunction(maybeTopLevelFunc, args)
-		logrus.Infof("result: %d", res.Float(sc.LlvmCtx().DoubleType()))
+		pass := llvm.NewPassManager()
+		defer pass.Dispose()
+		pass.AddConstantPropagationPass()
+		pass.AddInstructionCombiningPass()
+		pass.AddReassociatePass()
+		pass.AddPromoteMemoryToRegisterPass()
+		pass.AddGVNPass()
+		pass.AddCFGSimplificationPass()
+		pass.Run(module)
+
+		args := []llvm.GenericValue{}
+		res := engine.RunFunction(module.NamedFunction("top-level-function"), args)
+		defer res.Dispose()
+		fmt.Printf("result: %f\n", res.Float(sc.LlvmCtx().DoubleType()))
 	}
-	logrus.Infof("generated IR:\n%s", module.String())
 }

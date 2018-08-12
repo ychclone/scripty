@@ -33,7 +33,7 @@ func (p *Program) GenCode(sc *ScopeContext) llvm.Value {
 			"top-level-function",
 			llvm.FunctionType(
 				sc.LlvmCtx().DoubleType(),
-				[]llvm.Type{sc.LlvmCtx().DoubleType(), sc.LlvmCtx().DoubleType()},
+				[]llvm.Type{},
 				false,
 			),
 		)
@@ -46,10 +46,11 @@ func (p *Program) GenCode(sc *ScopeContext) llvm.Value {
 			builder.CreateRet(e.GenCode(sc, builder))
 		}
 
+		f.SetFunctionCallConv(llvm.CCallConv)
 		return f
 	} else if len(p.Functions) > 0 {
 		for _, fn := range p.Functions {
-			logrus.Infof("GenCode for function: %s", fn.Proto.Name)
+			logrus.Debugf("GenCode for function: %s", fn.Proto.Name)
 			return fn.GenCode(sc)
 		}
 	}

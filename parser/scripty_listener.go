@@ -226,7 +226,7 @@ func (sl *scriptyListener) ExitFunction_def(ctx *parsergen.Function_defContext) 
 
 func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {
 	numExpressions := len(ctx.AllExpression())
-	logrus.Infof("found %d top-level expressions", numExpressions)
+	logrus.Debugf("found %d top-level expressions", numExpressions)
 	tle := make([]*ast.Expression, numExpressions)
 	for i := 0; i < numExpressions; i++ {
 		e, ok := sl.expressions[ctx.Expression(i)]
@@ -237,7 +237,7 @@ func (sl *scriptyListener) ExitProgram(ctx *parsergen.ProgramContext) {
 		tle[i] = e.(*ast.Expression)
 	}
 
-	logrus.Infof("found %d functions", len(ctx.AllFunction_def()))
+	logrus.Debugf("found %d functions", len(ctx.AllFunction_def()))
 	fs := make(map[string]*ast.Function)
 	for _, feTmp := range ctx.AllFunction_def() {
 		fe := feTmp.(*parsergen.Function_defContext)
