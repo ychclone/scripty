@@ -67,6 +67,7 @@ func Parse(input string) {
 	}
 
 	logrus.Debugf("generated IR:\n%s", module.String())
+	PrintIR()
 
 	if len(listener.theProgram.TopLevelExpressions) > 0 {
 		options := llvm.NewMCJITCompilerOptions()

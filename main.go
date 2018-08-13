@@ -30,10 +30,6 @@ import (
 
 var shouldRun bool = true
 
-func main222() {
-	testFactorial()
-}
-
 func main() {
 	logrus.Info("Scripty interactive shell!!")
 	logrus.Infof("llvm version: %s", llvm.Version)
@@ -50,7 +46,6 @@ func main() {
 
 func cleanup() {
 	shouldRun = false
-	parser.PrintIR()
 }
 
 func interpreterLoop() {
