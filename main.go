@@ -19,9 +19,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/mhelmich/scripty/parser"
 	"github.com/sirupsen/logrus"
@@ -33,26 +32,19 @@ var shouldRun bool = true
 func main() {
 	logrus.Info("Scripty interactive shell!!")
 	logrus.Infof("llvm version: %s", llvm.Version)
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		cleanup()
-		os.Exit(1)
-	}()
 
 	interpreterLoop()
 }
 
-func cleanup() {
-	shouldRun = false
-}
-
 func interpreterLoop() {
-	for shouldRun {
+	for { // ever...
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print(">>> ")
-		text, _ := reader.ReadString('\n')
+		text, err := reader.ReadString('\n')
+		if err == io.EOF {
+			parser.PrintIR()
+			return
+		}
 		parser.Parse(text)
 	}
 }

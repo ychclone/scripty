@@ -67,7 +67,6 @@ func Parse(input string) {
 	}
 
 	logrus.Debugf("generated IR:\n%s", module.String())
-	PrintIR()
 
 	if len(listener.theProgram.TopLevelExpressions) > 0 {
 		options := llvm.NewMCJITCompilerOptions()
@@ -95,6 +94,6 @@ func Parse(input string) {
 		args := []llvm.GenericValue{}
 		res := engine.RunFunction(module.NamedFunction("top-level-function"), args)
 		defer res.Dispose()
-		fmt.Printf("result: %f\n", res.Float(sc.LlvmCtx().DoubleType()))
+		fmt.Printf("%f\n", res.Float(sc.LlvmCtx().DoubleType()))
 	}
 }
